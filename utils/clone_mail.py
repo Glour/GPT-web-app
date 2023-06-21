@@ -5,53 +5,59 @@ import schedule
 import time
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import yaml
+
+with open("../config.yaml", "r") as conf:
+    config = yaml.safe_load(conf)
 
 
 # Параметры для подключения к SMTP-серверу Яндекс.Почты
-SMTP_PORT = 587
-SMTP_SERVER = 'smtp.yandex.ru'
-SMTP_LOGIN = 'i@alex-bogdanov.ru'
-SMTP_PASSWORD = 'darkness50-3'
+smtp_params = config["SMTP_PARAMS"]
+SMTP_PORT = smtp_params["SMTP_PORT"]
+SMTP_SERVER = smtp_params["SMTP_SERVER"]
+SMTP_LOGIN = smtp_params["SMTP_LOGIN"]
+SMTP_PASSWORD = smtp_params["SMTP_PASSWORD"]
 
 # Адреса получателя и отправителя
 SENDER_EMAIL = SMTP_LOGIN
-RECIPIENT_EMAIL = ['wbcon@yandex.ru', 'i@alex-bogdanov.ru']
+RECIPIENT_EMAILS = config["RECIPIENT_EMAILS"]
 
-# Путь к папке с логами
-LOGS_DIR = '../logs'
+# Пути к папкам с логами
+LOGS_DIRS = config["LOGS_DIRS"]
 
 
-def send_last_log():
-    # Получаем список файлов в папке с логами
-    log_files = os.listdir(LOGS_DIR)
-    # Сортируем файлы по дате последней модификации
-    log_files.sort(key=lambda x: os.path.getmtime(os.path.join(LOGS_DIR, x)))
-    # Получаем путь к последнему лог-файлу
-    last_log_file = os.path.join(LOGS_DIR, log_files[-1])
-    # получаем дату последнего изменения файла
-    last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(LOGS_DIR, last_log_file)))
+def send_last_log(log_type):
+    log_dir = LOGS_DIRS.get(log_type)
+    if not log_dir:
+        return
+    log_files = os.listdir(log_dir)
+    if not log_files:
+        return
+    last_log_file = max(log_files, key=lambda f: os.path.getmtime(os.path.join(log_dir, f)))
+    last_modified = datetime.datetime.fromtimestamp(os.path.getmtime(os.path.join(log_dir, last_log_file)))
+
     # Создаем объект MIME-сообщения
     message = MIMEMultipart()
-    message['Subject'] = 'Лог файл с платного приложения за {}'.format(last_modified.strftime('%d-%m-%Y'))
+    message['Subject'] = f'Лог файл с платного приложения за {last_modified.strftime("%d-%m-%Y")}'
     message['From'] = SENDER_EMAIL
-    message['To'] = ', '.join(RECIPIENT_EMAIL)
+    message['To'] = ', '.join(RECIPIENT_EMAILS[log_type])
 
     # Открываем файл и добавляем его содержимое в объект сообщения
-    with open(last_log_file, 'r') as f:
-        log_content = f.read()
+    with open(f'{log_dir}/{last_log_file}', 'r', encoding="utf-8") as file:
+        log_content = file.read()
     txt_part = MIMEText(log_content)
-    txt_part.add_header('Content-Disposition', 'attachment', filename=f'{log_files[-1][:-4]}.txt')
+    txt_part.add_header('Content-Disposition', 'attachment', filename=f'{last_log_file.split(".")[0]}.txt')
     message.attach(txt_part)
-
     # Отправляем сообщение
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp_server:
         smtp_server.starttls()
         smtp_server.login(SMTP_LOGIN, SMTP_PASSWORD)
-        smtp_server.sendmail(SENDER_EMAIL, RECIPIENT_EMAIL, message.as_string())
+        smtp_server.sendmail(SENDER_EMAIL, RECIPIENT_EMAILS[log_type], message.as_string())
 
 
-# Устанавливаем ежедневное расписание отправки письма
-schedule.every().day.at('07:01:00').do(send_last_log)
+# Устанавливаем ежедневное расписание отправки писем
+schedule.every().day.at('07:00:00').do(lambda: send_last_log('requests'))
+schedule.every().day.at('07:00:00').do(lambda: send_last_log('errors'))
 
 while True:
     schedule.run_pending()
