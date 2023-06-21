@@ -1,16 +1,16 @@
 
 #email
 SMTP_PARAMS:
-  SMTP_PORT: 587
-  SMTP_SERVER: smtp.yandex.ru
-  SMTP_LOGIN: i@alex-bogdanov.ru
-  SMTP_PASSWORD: darkness50-3
+  SMTP_PORT: YOUR_PORT
+  SMTP_SERVER: YOUR_SERVER
+  SMTP_LOGIN: YOUR_LOGIN
+  SMTP_PASSWORD: YOUR_PASSWORD
 
 RECIPIENT_EMAILS:
-  requests:
-  - wbcon@yandex.ru
-  errors:
-  - i@alex-bogdanov.ru
+  requests: YOUR_EMAIL
+  -
+  errors: YOUR_EMAIL
+  -
 
 LOGS_DIRS:
   requests: ../logs/requests
