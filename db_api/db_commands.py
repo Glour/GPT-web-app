@@ -1,6 +1,8 @@
 from datetime import date, timedelta
 from datetime import datetime
 
+from sqlalchemy import func
+
 from db_api.models import DailyRequestCount, RequestLog
 
 
@@ -51,3 +53,12 @@ class DBCommands:
         log = await RequestLog.query.where(RequestLog.id == task_id).gino.first()
         if log:
             return log.to_dict()
+
+    async def get_count_logs_per_minute(self, user_id):
+        # Вычислите временную метку, представляющую начало последних 10 минут
+        ten_minute_ago = datetime.now() - timedelta(minutes=10)
+
+        # Выполните запрос для подсчета количества записей
+        count = await RequestLog.query.where(
+            (RequestLog.created_at >= ten_minute_ago) & (RequestLog.user_id == user_id)).gino.all()
+        return count

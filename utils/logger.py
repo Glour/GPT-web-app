@@ -27,5 +27,4 @@ logger_requests.addHandler(handler_requests)
 
 logger_errors.addHandler(console_out)
 logger_errors.addHandler(handler_errors)
-
  

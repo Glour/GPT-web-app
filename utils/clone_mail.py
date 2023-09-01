@@ -1,17 +1,21 @@
 import datetime
 import os
 import smtplib
-import schedule
 import time
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+
+import schedule
 import yaml
 
-with open("../config.yaml", "r") as conf:
+# Получаем абсолютный путь к директории, где находится текущий скрипт
+script_dir = os.path.dirname(os.path.abspath(__file__))
+config_path = os.path.join(script_dir, "../config.yaml")
+
+with open(config_path, "r") as conf:
     config = yaml.safe_load(conf)
 
-
-# Параметры для подключения к SMTP-серверу Яндекс.Почты
+# Параметры для подключения к SMTP-серверу Яндекс Почты
 smtp_params = config["SMTP_PARAMS"]
 SMTP_PORT = smtp_params["SMTP_PORT"]
 SMTP_SERVER = smtp_params["SMTP_SERVER"]
@@ -55,10 +59,24 @@ def send_last_log(log_type):
         smtp_server.sendmail(SENDER_EMAIL, RECIPIENT_EMAILS[log_type], message.as_string())
 
 
+async def send_alert_message(user_id):
+    message = MIMEMultipart()
+    message['Subject'] = f'Подозрительная активность'
+    message['From'] = SENDER_EMAIL
+    message['To'] = ', '.join(RECIPIENT_EMAILS['requests'])
+    message.attach(MIMEText(f'Пользователь c user_id: {user_id} превысил лимит запросов', 'plain'))
+
+    with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp_server:
+        smtp_server.starttls()
+        smtp_server.login(SMTP_LOGIN, SMTP_PASSWORD)
+        smtp_server.sendmail(SENDER_EMAIL, RECIPIENT_EMAILS['errors'], message.as_string())
+
+
 # Устанавливаем ежедневное расписание отправки писем
 schedule.every().day.at('07:00:00').do(lambda: send_last_log('requests'))
 schedule.every().day.at('07:00:00').do(lambda: send_last_log('errors'))
 
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+if __name__ == '__main__':
+    while True:
+        schedule.run_pending()
+        time.sleep(1)

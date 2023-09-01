@@ -7,6 +7,7 @@ from fastapi import Request
 from db_api.db_commands import DBCommands
 from db_api.models import create_db
 from engine import create_prompt
+from utils.clone_mail import send_alert_message
 from utils.logger import logger_requests
 
 app = FastAPI()
@@ -32,6 +33,12 @@ async def paid_generate_description(request: Request):
     await db.get_or_create_date()
     logger_requests.info(f"Запрос: {product_name}")
     task_id = await db.create_request_log(user_id, product_name, data)
+
+    count_logs_per_10_minute = await db.get_count_logs_per_minute(user_id)
+    if len(count_logs_per_10_minute) >= 10:
+        await send_alert_message(user_id)
+        raise HTTPException(status_code=400, detail='Достигнут лимит запросов в минуту')
+
     asyncio.create_task(create_prompt(data, task_id))
     return {'id': task_id}
 
@@ -77,5 +84,5 @@ async def startup_event():
 
 
 if __name__ == '__main__':
-    uvicorn.run(app, host='62.109.24.13', port=260)
-    # uvicorn.run(app, host='127.0.0.1', port=5001)
+    # uvicorn.run(app, host='62.109.24.13', port=260)
+    uvicorn.run(app, host='127.0.0.1', port=5001)

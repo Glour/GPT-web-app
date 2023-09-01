@@ -3,7 +3,7 @@ from datetime import date, datetime
 from environs import Env
 from gino import Gino
 from gino.schema import GinoSchemaVisitor
-from sqlalchemy import Column, BigInteger, Date, String, JSON, DateTime, Integer
+from sqlalchemy import Column, BigInteger, Date, String, JSON, DateTime
 
 from utils.logger import logger_requests
 
@@ -47,7 +47,7 @@ class RequestLog(db.Model):
     created_at = Column(DateTime, default=datetime.now(), nullable=False)
 
     def __repr__(self):
-        return f"RequestLog(id={self.id}, user_id={self.user_id}, request={self.request}, response={self.response}, status={self.status})"
+        return f"RequestLog(id={self.id}, user_id={self.user_id}, request={self.request}, status={self.status}, created_at={self.created_at.strftime('%H:%M:%S')})"
 
     def to_dict(self):
         return {
@@ -72,5 +72,5 @@ async def create_db():
     logger_requests.info("Connect to Postgres database")
     # noinspection PyTypeHints
     db.gino: GinoSchemaVisitor
-    await db.gino.drop_all()
+    # await db.gino.drop_all()
     await db.gino.create_all()
