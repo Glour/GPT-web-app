@@ -1,8 +1,6 @@
 from datetime import date, timedelta
 from datetime import datetime
 
-from sqlalchemy import func
-
 from db_api.models import DailyRequestCount, RequestLog
 
 

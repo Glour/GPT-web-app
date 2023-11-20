@@ -35,7 +35,7 @@ async def paid_generate_description(request: Request):
     task_id = await db.create_request_log(user_id, product_name, data)
 
     count_logs_per_10_minute = await db.get_count_logs_per_minute(user_id)
-    if len(count_logs_per_10_minute) >= 10:
+    if len(count_logs_per_10_minute) > 10:
         await send_alert_message(user_id)
         raise HTTPException(status_code=400, detail='Достигнут лимит запросов в минуту')
 

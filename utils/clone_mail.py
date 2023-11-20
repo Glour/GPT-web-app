@@ -63,13 +63,13 @@ async def send_alert_message(user_id):
     message = MIMEMultipart()
     message['Subject'] = f'Подозрительная активность'
     message['From'] = SENDER_EMAIL
-    message['To'] = ', '.join(RECIPIENT_EMAILS['requests'])
+    message['To'] = ', '.join(RECIPIENT_EMAILS['errors'])
     message.attach(MIMEText(f'Пользователь c user_id: {user_id} превысил лимит запросов', 'plain'))
 
     with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as smtp_server:
         smtp_server.starttls()
         smtp_server.login(SMTP_LOGIN, SMTP_PASSWORD)
-        smtp_server.sendmail(SENDER_EMAIL, RECIPIENT_EMAILS['errors'], message.as_string())
+        smtp_server.sendmail(SENDER_EMAIL, RECIPIENT_EMAILS['requests'], message.as_string())
 
 
 # Устанавливаем ежедневное расписание отправки писем
