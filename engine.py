@@ -23,7 +23,7 @@ async def generate_answer(prompt, messages, max_tokens, task_id) -> str | tuple[
     try:
         messages[1] = {"role": "user", "content": prompt}
         completion = await openai.ChatCompletion.acreate(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=messages,
             temperature=0.3,
             max_tokens=int(max_tokens))
