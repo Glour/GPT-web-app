@@ -62,9 +62,9 @@ async def get_user_request(request: Request):
 
 @app.post('/get_log')
 async def get_log(request: Request):
-    referer = request.headers.get('Referer')
-    if not referer or 'wbcon.ru' not in referer:
-        raise HTTPException(status_code=403, detail='Доступ запрещен')
+    # referer = request.headers.get('Referer')
+    # if not referer or 'wbcon.ru' not in referer:
+    #     raise HTTPException(status_code=403, detail='Доступ запрещен')
 
     data = await request.json()
     task_id = data.get('id')
