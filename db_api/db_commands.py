@@ -8,11 +8,13 @@ class DBCommands:
     async def get_or_create_date(self):
         today = date.today()
         request_count = await DailyRequestCount.query.where(DailyRequestCount.date == today).gino.first()
+
         if request_count:
-            new_count = request_count.count + 1
-            await request_count.update(count=new_count).apply()
+            # Обновляем счётчик и сохраняем объект с новым значением
+            request_count = await request_count.update(count=request_count.count + 1).apply()
         else:
             request_count = await DailyRequestCount.create(date=today, count=1)
+
         return request_count
 
     async def create_request_log(self, user_id, request, data):

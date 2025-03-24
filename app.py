@@ -16,10 +16,6 @@ db = DBCommands()
 
 @app.post('/paid_generate_description')
 async def paid_generate_description(request: Request):
-#    referer = request.headers.get('Referer')
- #   if not referer or 'wbcon.ru' not in referer:
-  #      raise HTTPException(status_code=403, detail='Доступ запрещен')
-
     data = await request.json()
     product_name = data.get('product_name')
     user_id = data.get('user_id')
@@ -45,10 +41,6 @@ async def paid_generate_description(request: Request):
 
 @app.post('/get_user_request')
 async def get_user_request(request: Request):
-   # referer = request.headers.get('Referer')
-    #if not referer or 'wbcon.ru' not in referer:
-     #   raise HTTPException(status_code=403, detail='Доступ запрещен')
-
     data = await request.json()
     user_id = data.get('user_id')
 
@@ -62,10 +54,6 @@ async def get_user_request(request: Request):
 
 @app.post('/get_log')
 async def get_log(request: Request):
-   # referer = request.headers.get('Referer')
-   # if not referer or 'wbcon.ru' not in referer:
-   #     raise HTTPException(status_code=403, detail='Доступ запрещен')
-
     data = await request.json()
     task_id = data.get('id')
     if not task_id:
